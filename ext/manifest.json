@@ -1,0 +1,17 @@
+{
+    "manifest_version": 2,
+    "name": "ORTC/WebRTC video effect",
+    "description": "This extension apply video effects on the video from the camera",
+    "version": "1.0",
+    "browser_action": {
+        "default_icon": "res/icon.png",
+        "default_popup": "popup.html",
+        "default_title": "Video effect!"
+    },
+    "permissions": ["activeTab", "https://ajax.googleapis.com/"],
+    "content_scripts": [{
+        "run_at": "document_start",
+        "js": ["js/util.js", "js/gum_hook.js"],
+        "matches": ["https://*.skype.com/*", "https://appear.in/*", "https://simpl.info/*"]
+    }]
+}
