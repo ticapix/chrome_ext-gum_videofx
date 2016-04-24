@@ -115,14 +115,17 @@ function check_feature() {
     return true;
 }
 if (check_feature()) {
-    inject_code(debug).then(function() {
-        return inject_code(threeRender)
+    inject_code('var _short_name = "' + chrome.runtime.getManifest().short_name + '";').then(function() {
+        return inject_code(debug)
     }).then(function() {
         return inject_code(install_gum_hook, true)
     }).then(function() {
-        return inject_script('https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.min.js');
+        // return inject_script('https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.min.js');
+        return inject_script(chrome.extension.getURL('lib/three.min.js'));
     }).then(function() {
         return inject_code(install_dom_elt, true)
+    }).then(function() {
+        return inject_code(threeRender)
     }).then(function() {
         debug('done installing');
     })

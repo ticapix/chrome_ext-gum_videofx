@@ -1,35 +1,35 @@
+var _short_name = chrome.runtime.getManifest().short_name
+
 function debug() {
-    Array.prototype.unshift.call(arguments, 'Video Effect:')
+    Array.prototype.unshift.call(arguments, _short_name || '-')
     console.log.apply(console, arguments)
 }
 
 function inject_code(fct, auto_run) {
-    var inject = document.createElement("script");
-    inject.setAttribute("type", "text/javascript");
-    inject.appendChild(document.createTextNode(fct));
+    var elt = document.createElement("script");
+    elt.setAttribute("type", "text/javascript");
+    elt.appendChild(document.createTextNode(fct));
     if (auto_run === true) {
-        inject.appendChild(document.createTextNode("(" + fct.name + ")()"));
+        elt.appendChild(document.createTextNode("(" + fct.name + ")()"));
     }
     var prom = new Promise(function(resolve, reject) {
-        var targ = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
-        debug('injecting function', fct.name, 'in', targ.nodeName);
-        targ.appendChild(inject);
+        (document.getElementsByTagName('head')[0] || document.body || document.documentElement).appendChild(elt)
+        debug('injecting function', fct.name, 'in', elt.parentNode.nodeName);
         resolve()
     })
     return prom;
 }
 
 function inject_script(url) {
-    var inject = document.createElement("script");
-    inject.setAttribute("type", "text/javascript");
-    inject.setAttribute("src", url);
+    var elt = document.createElement("script");
+    elt.setAttribute("type", "text/javascript");
+    elt.setAttribute("src", url);
     var prom = new Promise(function(resolve, reject) {
-        inject.onload = function() {
+        elt.onload = function() {
             resolve();
-        }
-        var targ = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
-        debug('injecting url', url, 'in', targ.nodeName);
-        targ.appendChild(inject);
+        };
+        (document.getElementsByTagName('head')[0] || document.body || document.documentElement).appendChild(elt)
+        debug('injecting url', url, 'in', elt.parentNode.nodeName);
     })
     return prom;
 }
