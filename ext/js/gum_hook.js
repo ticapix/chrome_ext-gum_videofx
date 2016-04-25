@@ -98,23 +98,7 @@ function threeRender(video) {
     }
     render();
 }
-
-function check_feature() {
-    if (window.webkitMediaStream === undefined) {
-        debug('MediaStream not supported')
-        return false;
-    }
-    if (Navigator.prototype.webkitGetUserMedia === undefined) {
-        debug('GetUserMedia not supported')
-        return false;
-    }
-    if (document.createElement('canvas').captureStream === undefined) {
-        debug('HTMLCanvasElement.captureStream not supported. Try enabling flag #enable-experimental-web-platform-features in chrome://flags/')
-        return false;
-    }
-    return true;
-}
-if (check_feature()) {
+/*if (check_feature()) {
     inject_code('var _short_name = "' + chrome.runtime.getManifest().short_name + '";').then(function() {
         return inject_code(debug)
     }).then(function() {
@@ -131,4 +115,75 @@ if (check_feature()) {
     })
 } else {
     debug('abording')
+}*/
+function install_gum_lazy_hook() {
+    'use strict';
+    window.MediaStream = window.webkitMediaStream;
+    window.navigator.__getUserMedia = Navigator.prototype.webkitGetUserMedia;
+    Navigator.prototype.webkitGetUserMedia = function(constraints, onSuccess, onFail) {
+            debug('GetUserMedia hook called')
+            navigator.__getUserMedia(constraints, function(stream) {
+                return new Promise(function(resolve, reject) {
+                    sendMessage({
+                        video_effect_init: true,
+                        id: '123456'
+                    });
+                    document.addEventListener('123456', function(evt) {
+                        debug('addEventListener: 123456', 'activated', evt)
+                        document.removeEventListener('123456', this, false)
+                        resolve();
+                    })
+                }).then(function() {
+                    debug('loaded')
+                    onSuccess(stream);
+                })
+            }, onFail)
+        }
+        // document.addEventListener('web2cs', function(evt) {
+        //     if (evt.detail.video_effect_ready === true) {
+        //         debug('effect done loading')
+        //     }
+        // })
 }
+// function to be called from the web page
+function sendMessage(data) {
+    var evt = new CustomEvent("web2cs", {
+        detail: data
+    });
+    document.dispatchEvent(evt);
+}
+// handler to get message from web page
+document.addEventListener('web2cs', function(evt) {
+    console.log('evt', evt)
+    if (evt.detail.video_effect_init === true) {
+        // GetUserMedia got called.
+        // need to load our code for the video effect
+        inject_script(chrome.extension.getURL('lib/three.min.js')).then(function() {
+            return inject_code(install_dom_elt, true)
+        }).then(function() {
+            return inject_code(threeRender)
+        }).then(function() {
+            var evt2 = new CustomEvent(evt.detail.id, {
+                detail: 42
+            });
+            document.dispatchEvent(evt2);
+            debug('done installing');
+        })
+    }
+})
+
+function main() {
+    // inject debug fct
+    inject_code('var _ext_short_name = "' + chrome.runtime.getManifest().short_name + '";').then(function() {
+        return inject_code(debug)
+    }).then(function() {
+        if (check_browser_feature_support()) {
+            inject_code(sendMessage).then(function() {
+                // inject hook that will do lazy loading
+                // ie, it will load extra code in the page only if GetUserMedia is used
+                return inject_code(install_gum_lazy_hook, true)
+            })
+        }
+    })
+}
+main()
