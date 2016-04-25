@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "ORTC/WebRTC video effect",
-    "short_name": "WebRTC-VideoFX",
+    "short_name": "webfx",
     "description": "This extension apply video effects on the video from the camera",
     "version": "1.0",
     "browser_action": {
@@ -12,7 +12,7 @@
     "permissions": ["activeTab", "https://ajax.googleapis.com/"],
     "content_scripts": [{
         "run_at": "document_start",
-        "js": ["js/util.js", "js/gum_hook.js"],
+        "js": ["js/util.js", "js/main.js"],
         "matches": ["https://*.skype.com/*", "https://appear.in/*", "https://simpl.info/*"]
     }],
     "web_accessible_resources": ["lib/three.min.js"]
