@@ -1,4 +1,4 @@
-var _ext_short_name = chrome.runtime.getManifest().short_name
+var _ext_short_name = chrome.runtime.getManifest().short_name + '(ext)'
 
 function debug() {
     Array.prototype.unshift.call(arguments, _ext_short_name || '-');
@@ -6,7 +6,6 @@ function debug() {
 }
 
 function inject_code(fct, auto_run) {
-    // var debug = window.debug || function() {}
     var elt = document.createElement("script");
     elt.setAttribute("type", "text/javascript");
     elt.appendChild(document.createTextNode(fct));
@@ -22,7 +21,6 @@ function inject_code(fct, auto_run) {
 }
 
 function inject_script(url) {
-    // var debug = window.debug || function() {}
     var elt = document.createElement("script");
     elt.setAttribute("type", "text/javascript");
     elt.setAttribute("src", url);
