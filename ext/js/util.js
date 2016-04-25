@@ -1,7 +1,7 @@
 var _ext_short_name = chrome.runtime.getManifest().short_name + '(cs)'
 
 function debug() {
-    Array.prototype.unshift.call(arguments, _ext_short_name || '-');
+    Array.prototype.unshift.call(arguments, typeof _ext_short_name !== 'undefined' ? _ext_short_name : '(web)');
     console.log.apply(console, arguments);
 }
 
