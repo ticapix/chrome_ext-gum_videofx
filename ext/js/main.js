@@ -1,6 +1,13 @@
+var _ext_short_name = chrome.runtime.getManifest().short_name + '(cs)';
 // https://github.com/chrisdavidmills/threejs-video-cube
 // https://cdn.rawgit.com/uysalere/js-demos/master/intro.html
-function install_dom_elt() {
+var videofx = {
+    "js/fx_3dcube.js": {
+        "main": "fx_3dcube"
+    }
+}
+
+function installDomElt() {
     window.pipeline_renderer = new THREE.WebGLRenderer();
     window.pipeline_renderer.setSize(640, 480);
     window.pipeline_renderer.domElement.setAttribute('style', 'width: 1px;height: 1px;');
@@ -9,7 +16,7 @@ function install_dom_elt() {
     window.pipeline_video = document.createElement("video");
 }
 
-function create_new_stream(stream) {
+function createNewStream(stream) {
     window.stream_orign = stream;
     if (window.stream_orign.getVideoTracks().length > 0) {
         debug('stream origin', window.stream_orign.getTracks())
@@ -42,54 +49,8 @@ function create_new_stream(stream) {
         })
     }
 }
-// three.js cube drawing
-function threeRender(video) {
-    var scene = new THREE.Scene();
-    // var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    var camera = new THREE.PerspectiveCamera(75, 640 / 480, 0.1, 1000);
-    // load a texture, set wrap mode to repeat
-    var texture = new THREE.Texture(video);
-    // texture.wrapS = THREE.RepeatWrapping;
-    // texture.wrapT = THREE.RepeatWrapping;
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.minFilter = THREE.NearestFilter;
-    texture.repeat.set(1, 1);
-    var geometry = new THREE.BoxGeometry(3, 3, 3);
-    var material = new THREE.MeshLambertMaterial({
-        map: texture
-    });
-    var cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-    camera.position.z = 4;
-    var light = new THREE.AmbientLight('rgb(255,255,255)'); // soft white light
-    scene.add(light);
-    // White directional light at half intensity shining from the top.
-    //var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-    //directionalLight.position.set( 0, 1, 0 );
-    //scene.add( directionalLight );
-    // white spotlight shining from the side, casting shadow
-    var spotLight = new THREE.SpotLight('rgb(255,255,255)');
-    spotLight.position.set(100, 1000, 1000);
-    spotLight.castShadow = true;
-    spotLight.shadow.mapSize.width = 1024;
-    spotLight.shadow.mapSize.height = 1024;
-    spotLight.shadow.camera.near = 500;
-    spotLight.shadow.camera.far = 4000;
-    spotLight.shadow.camera.fov = 30;
-    scene.add(spotLight);
-    //render the scene
-    function render() {
-        requestAnimationFrame(render);
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
-        texture.needsUpdate = true;
-        window.pipeline_renderer.render(scene, camera);
-    }
-    render();
-}
 
-function install_gum_lazy_hook() {
+function installGumLazyHook() {
     'use strict';
     window.MediaStream = window.webkitMediaStream;
     window.navigator.__getUserMedia = Navigator.prototype.webkitGetUserMedia;
@@ -100,7 +61,7 @@ function install_gum_lazy_hook() {
                 video_effect_init: true
             }).then(function(data) {
                 if (data.done === true) {
-                    create_new_stream(stream).then(function(stream) {
+                    createNewStream(stream).then(function(stream) {
                         onSuccess(stream);
                     })
                 }
@@ -119,10 +80,8 @@ function sendMessage2ContentScript(data) {
     };
     var detail = data || {}
     detail._id = ID()
-    debug('->', detail._id)
     var promise = new Promise(function(resolve, reject) {
         document.addEventListener(detail._id, function(evt) {
-            debug('<-', detail._id)
             document.removeEventListener(detail._id, this, false)
             resolve(evt.detail);
         })
@@ -146,32 +105,62 @@ document.addEventListener('web2cs', function(evt) {
         // GetUserMedia got called.
         // need to load our code for the video effect
         inject_script(chrome.extension.getURL('lib/three.min.js')).then(function() {
-            return inject_code(install_dom_elt, true)
+            return inject_code(installDomElt, true)
         }).then(function() {
-            return inject_code(threeRender)
+            var fct = null
+            for (var fx in videofx) {
+                debug(fx, videofx[fx]);
+                fct = videofx[fx].main
+                chrome.runtime.sendMessage({
+                    get_script: fx
+                }, function(response) {
+                    debug('response', response);
+                    inject_code(response)
+                })
+            }
+
+            function threeRender(video) {
+                debug("fct", fct, window[fct])
+                return window[fct](video);
+            }
+            inject_code('var fct = "' + fct + '";')
+            return inject_code(threeRender);
         }).then(function() {
-            return inject_code(create_new_stream);
+            return inject_code(createNewStream);
         }).
         then(function() {
             responseEvent(evt, {
                 done: true
-            })
-        })
+            });
+        });
     }
-})
-
+});
+// content script
 function main() {
     if (check_browser_feature_support()) {
-        // inject debug fct
         inject_code('var _ext_short_name = "' + chrome.runtime.getManifest().short_name + '(web)";').then(function() {
             return inject_code(debug)
         }).then(function() {
             return inject_code(sendMessage2ContentScript)
         }).then(function() {
-            // inject hook that will do lazy loading
-            // ie, it will load extra code in the page only if GetUserMedia is used
-            return inject_code(install_gum_lazy_hook, true)
+            return inject_code(installGumLazyHook, true)
         })
     }
 }
 main()
+
+function getMessage() {
+    document.addEventListener('cs2web', function(evt) {
+        console.log('evt', evt, evt.detail)
+    })
+}
+inject_code(getMessage, true)
+
+function sendMessage2Webpage(data) {
+    var detail = data || {}
+    var evt = new CustomEvent("cs2web", {
+        detail: detail
+    });
+    document.dispatchEvent(evt);
+}
+sendMessage2Webpage([1, 3, 5])
