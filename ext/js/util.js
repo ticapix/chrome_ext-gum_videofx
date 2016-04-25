@@ -1,4 +1,4 @@
-var _ext_short_name = chrome.runtime.getManifest().short_name + '(ext)'
+var _ext_short_name = chrome.runtime.getManifest().short_name + '(cs)'
 
 function debug() {
     Array.prototype.unshift.call(arguments, _ext_short_name || '-');
