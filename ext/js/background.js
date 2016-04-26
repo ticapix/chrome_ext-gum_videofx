@@ -27,3 +27,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
     return true;
 })
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+    debug('activeInfo', activeInfo)
+})
+// chrome.browserAction.setIcon({
+//     path: 'icon.svg'
+// });
+// chrome.pageAction.setIcon({
+//     path: 'icon.svg'
+// });

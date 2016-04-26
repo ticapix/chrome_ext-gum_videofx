@@ -1,10 +1,50 @@
 var _ext_short_name = chrome.runtime.getManifest().short_name + '(cs)';
-// https://github.com/chrisdavidmills/threejs-video-cube
 // https://cdn.rawgit.com/uysalere/js-demos/master/intro.html
-var videofx = {
-    "js/fx_3dcube.js": {
-        "main": "fx_3dcube"
+var videofx = ["js/fx_3dcube.js", "js/fx_null.js"]
+
+function inject_code(fct, auto_run) {
+    var elt = document.createElement("script");
+    elt.setAttribute("type", "text/javascript");
+    elt.appendChild(document.createTextNode(fct));
+    if (auto_run === true) {
+        elt.appendChild(document.createTextNode("(" + fct.name + ")()"));
     }
+    var prom = new Promise(function(resolve, reject) {
+        (document.getElementsByTagName('head')[0] || document.body || document.documentElement).appendChild(elt);
+        debug('injecting function', fct.name || '<inline>', 'in', elt.parentNode.nodeName);
+        resolve();
+    })
+    return prom;
+}
+
+function inject_script(url) {
+    var elt = document.createElement("script");
+    elt.setAttribute("type", "text/javascript");
+    elt.setAttribute("src", url);
+    var prom = new Promise(function(resolve, reject) {
+        elt.onload = function() {
+            resolve();
+        };
+        (document.getElementsByTagName('head')[0] || document.body || document.documentElement).appendChild(elt);
+        debug('injecting url', url, 'in', elt.parentNode.nodeName);
+    })
+    return prom;
+}
+
+function check_browser_feature_support() {
+    if (window.webkitMediaStream === undefined) {
+        debug('MediaStream not supported')
+        return false;
+    }
+    if (Navigator.prototype.webkitGetUserMedia === undefined) {
+        debug('GetUserMedia not supported')
+        return false;
+    }
+    if (document.createElement('canvas').captureStream === undefined) {
+        debug('HTMLCanvasElement.captureStream not supported. Try enabling flag #enable-experimental-web-platform-features in chrome://flags/')
+        return false;
+    }
+    return true;
 }
 
 function installDomElt() {
@@ -104,26 +144,25 @@ document.addEventListener('web2cs', function(evt) {
     if (evt.detail.video_effect_init === true) {
         // GetUserMedia got called.
         // need to load our code for the video effect
+        inject_code("javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()")
         inject_script(chrome.extension.getURL('lib/three.min.js')).then(function() {
             return inject_code(installDomElt, true)
         }).then(function() {
-            var fct = null
-            for (var fx in videofx) {
-                debug(fx, videofx[fx]);
-                fct = videofx[fx].main
+            return inject_code(define_module)
+        }).then(function() {
+            for (var fx of videofx) {
                 chrome.runtime.sendMessage({
                     get_script: fx
                 }, function(response) {
-                    debug('response', response);
                     inject_code(response)
                 })
             }
 
             function threeRender(video) {
-                debug("fct", fct, window[fct])
-                return window[fct](video);
+                var fx = 'fx_null'
+                fx = 'fx_3dcube'
+                return window.modules[fx].main(video);
             }
-            inject_code('var fct = "' + fct + '";')
             return inject_code(threeRender);
         }).then(function() {
             return inject_code(createNewStream);
