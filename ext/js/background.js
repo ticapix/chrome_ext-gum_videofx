@@ -1,4 +1,4 @@
-var _ext_short_name = chrome.runtime.getManifest().short_name + '(bg)';
+//var application_name = chrome.runtime.getManifest().short_name;
 // chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 //     if (message.injectSpecific) {
 //         var filename = "js/fx_3dcube.js";
@@ -12,6 +12,7 @@ var _ext_short_name = chrome.runtime.getManifest().short_name + '(bg)';
 //         return true; // Required for async sendResponse()
 //     }
 // });
+var videofx = ["js/fx_3dcube.js", "js/fx_null.js"]
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.get_script !== undefined) {
         var url = message.get_script
@@ -24,15 +25,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             }
         };
         xhr.send(null);
+    } else if (message.get_plugin_scripts !== undefined) {
+        sendResponse(videofx)
     }
     return true;
 })
 chrome.tabs.onActivated.addListener(function(activeInfo) {
-    debug('activeInfo', activeInfo)
-})
-// chrome.browserAction.setIcon({
-//     path: 'icon.svg'
-// });
-// chrome.pageAction.setIcon({
-//     path: 'icon.svg'
-// });
+        debug('activeInfo', activeInfo)
+    })
+    // chrome.browserAction.setIcon({
+    //     path: 'icon.svg'
+    // });
+    // chrome.pageAction.setIcon({
+    //     path: 'icon.svg'
+    // });
