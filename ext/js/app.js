@@ -51,8 +51,8 @@ var app_init = (function() {
                         stream_from_effect.addTrack(audio_track);
                     }
                     stream_from_effect.getTracks().forEach(function(track) {
-                        track.addEventListener('stop', function() {
-                            debug('stop', this, this, window.stream_orign.getTracks())
+                        track.addEventListener('ended', function(track) {
+                            debug('ended', this, track, window.stream_orign.getTracks())
                         })
                     });
                     debug('stream from effect', stream_from_effect.getTracks())
@@ -120,6 +120,5 @@ var app_init = (function() {
         installGumLazyHook: installGumLazyHook,
         installDomElt: installDomElt,
         defineModule: defineModule,
-        videofx: _videofx
     };
 });
