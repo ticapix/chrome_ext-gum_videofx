@@ -8,6 +8,7 @@ var app_init = (function() {
     var _status = StateEnum.UNINSTALLED;
     var _videofx = {}
     var _pipeline_video = document.createElement("video");
+    var _stream_orign = null;
     var _sendMessage2ContentScript = function(data) {
         // https://gist.github.com/gordonbrander/2230317
         var ID = function() {
@@ -37,22 +38,22 @@ var app_init = (function() {
         return _videofx[fx].main(video);
     }
     var _createNewStream = function(stream) {
-        window.stream_orign = stream;
-        if (window.stream_orign.getVideoTracks().length > 0) {
-            debug('stream origin', window.stream_orign.getTracks())
+        _stream_orign = stream;
+        if (_stream_orign.getVideoTracks().length > 0) {
+            debug('stream origin', _stream_orign.getTracks())
             debug('_pipeline_video', _pipeline_video)
             return new Promise(function(resolve, reject) {
                 var handler = function() {
-                    debug('oncanplay', _pipeline_video)
+                    debug('oncanplay')
                     _pipeline_video.play();
                     _threeRender(_pipeline_video);
                     var stream_from_effect = window.pipeline_renderer.domElement.captureStream(30);
-                    for (var audio_track of window.stream_orign.getAudioTracks()) {
+                    for (var audio_track of _stream_orign.getAudioTracks()) {
                         stream_from_effect.addTrack(audio_track);
                     }
                     stream_from_effect.getTracks().forEach(function(track) {
                         track.addEventListener('ended', function(track) {
-                            debug('ended', this, track, window.stream_orign.getTracks())
+                            debug('ended', this, track, _stream_orign.getTracks())
                         })
                     });
                     debug('stream from effect', stream_from_effect.getTracks())
@@ -61,13 +62,13 @@ var app_init = (function() {
                 }
                 _pipeline_video.addEventListener('canplay', handler);
                 // TODO: maybe taking the 1st video track is not optimal
-                var stream_to_effect = new MediaStream([window.stream_orign.getVideoTracks()[0]]);
+                var stream_to_effect = new MediaStream([_stream_orign.getVideoTracks()[0]]);
                 debug('stream to effect', stream_to_effect.getTracks());
                 _pipeline_video.src = window.URL.createObjectURL(stream_to_effect);
             })
         } else {
             return new Promise(function(resolve, reject) {
-                resolve(window.stream_orign);
+                resolve(_stream_orign);
             })
         }
     }
