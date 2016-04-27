@@ -1,14 +1,16 @@
-// https://github.com/chrisdavidmills/threejs-video-cube
-define_module('fx_3dcube', function() {
+window[application_name].defineModule('fx_3dcube', function() {
+    // https://github.com/chrisdavidmills/threejs-video-cube
     var self = {}
         // three.js cube drawing
     self.main = function(video) {
         var scene = new THREE.Scene();
-        debug('video', video)
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10);
         // var camera = new THREE.PerspectiveCamera(75, video.videoWidth / video.videoHeight, 0.1, 1000);
         // load a texture, set wrap mode to repeat
         var texture = new THREE.Texture(video);
+        // texture.wrapS = THREE.ClampToEdgeWrapping;
+        // texture.wrapT = THREE.ClampToEdgeWrapping;
+        // texture.repeat.set(1, 1);
         texture.minFilter = THREE.NearestFilter;
         var geometry = new THREE.BoxGeometry(3, 3, 3);
         var material = new THREE.MeshLambertMaterial({
