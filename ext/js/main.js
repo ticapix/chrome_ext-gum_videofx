@@ -38,15 +38,7 @@ document.addEventListener('web2cs', function(evt) {
                     for (var fx of videofx) {
                         fx_promises.push(inject_file(fx))
                     }
-
-                    function threeRender(video) {
-                        var fx = 'fx_null'
-                        fx = 'fx_3dcube'
-                        return window[application_name].videofx[fx].main(video);
-                    }
                     return Promise.all(fx_promises).then(function() {
-                        return inject_fct(threeRender);
-                    }).then(function() {
                         resolve()
                     })
                 })
