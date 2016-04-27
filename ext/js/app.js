@@ -9,6 +9,7 @@ var app_init = (function() {
     var _videofx = {}
     var _pipeline_video = document.createElement("video");
     var _stream_orign = null;
+    var _pipeline_renderer = null;
     var _sendMessage2ContentScript = function(data) {
         // https://gist.github.com/gordonbrander/2230317
         var ID = function() {
@@ -47,7 +48,7 @@ var app_init = (function() {
                     debug('oncanplay')
                     _pipeline_video.play();
                     _threeRender(_pipeline_video);
-                    var stream_from_effect = window.pipeline_renderer.domElement.captureStream(30);
+                    var stream_from_effect = _pipeline_renderer.domElement.captureStream(30);
                     for (var audio_track of _stream_orign.getAudioTracks()) {
                         stream_from_effect.addTrack(audio_track);
                     }
@@ -72,7 +73,7 @@ var app_init = (function() {
             })
         }
     }
-    var installGumLazyHook = function() {
+    var _installGumLazyHook = function() {
         'use strict';
         window.MediaStream = window.webkitMediaStream;
         window.navigator.__getUserMedia = Navigator.prototype.webkitGetUserMedia;
@@ -107,19 +108,25 @@ var app_init = (function() {
         }
         _status = StateEnum.LAZY_INSTALLED
     }
-    var installDomElt = function() {
-        window.pipeline_renderer = new THREE.WebGLRenderer();
-        window.pipeline_renderer.setSize(640, 480);
-        window.pipeline_renderer.domElement.setAttribute('style', 'width: 1px;height: 1px;');
-        (document.body || document.getElementsByTagName('head')[0] || document.documentElement).appendChild(window.pipeline_renderer.domElement);
+    var _installDomElt = function() {
+        _pipeline_renderer = new THREE.WebGLRenderer();
+        _pipeline_renderer.setSize(640, 480);
+        _pipeline_renderer.domElement.setAttribute('style', 'width: 1px;height: 1px;');
+        (document.body || document.getElementsByTagName('head')[0] || document.documentElement).appendChild(_pipeline_renderer.domElement);
     }
-    var defineModule = function(name, module) {
+    var _defineModule = function(name, module) {
         debug('loading videofx', name)
         _videofx[name] = module;
     }
-    return {
-        installGumLazyHook: installGumLazyHook,
-        installDomElt: installDomElt,
-        defineModule: defineModule,
-    };
+    var self = {
+        installGumLazyHook: _installGumLazyHook,
+        installDomElt: _installDomElt,
+        defineModule: _defineModule
+    }
+    Object.defineProperty(self, "pipeline_renderer", {
+        get: function() {
+            return _pipeline_renderer;
+        }
+    })
+    return self;
 });
