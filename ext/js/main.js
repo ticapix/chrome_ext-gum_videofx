@@ -53,15 +53,12 @@ document.addEventListener('web2cs', function(evt) {
 // content script
 function main() {
     if (check_browser_feature_support()) {
-        inject_code('window.application_name="' + chrome.runtime.getManifest().short_name + '"').then(function() {
-            return inject_script(chrome.extension.getURL('js/util.js'))
-        }).then(function() {
-            return inject_script(chrome.extension.getURL('js/app.js'))
-        }).then(function() {
-            return inject_code('window[application_name] = app_init()')
-        }).then(function() {
-            return inject_code('window[application_name].installGumLazyHook()')
-        })
+        inject_code('window.application_name="' + chrome.runtime.getManifest().short_name + '"');
+        inject_fct(debug);
+        // inserting the code directly from function source code, without passing message to background
+        // otherwise, the web page might call getUserMedia before we install our hook
+        inject_code('window[application_name] = ' + app_init.toString() + '()');
+        inject_code('window[application_name].installGumLazyHook()');
     }
 }
 main()
