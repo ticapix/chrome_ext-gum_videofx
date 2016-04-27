@@ -1,12 +1,15 @@
 function debug() {
-    Array.prototype.unshift.call(arguments, typeof _ext_short_name !== 'undefined' ? _ext_short_name : '-');
-    console.log.apply(console, arguments);
-}
-
-function define_module(name, module) {
-    if (window.modules === undefined) {
-        window.modules = {};
+    var prefix = typeof application_name !== 'undefined' ? application_name : '-'
+    if (chrome.extension === undefined) {
+        prefix += '(web)'
+    } else {
+        prefix = chrome.runtime.getManifest().short_name
+        if (location.protocol === 'chrome-extension:') {
+            prefix += '(bg)'
+        } else {
+            prefix += '(cs)'
+        }
     }
-    debug('module', name, module)
-    window.modules[name] = module;
+    Array.prototype.unshift.call(arguments, prefix);
+    console.log.apply(console, arguments);
 }
