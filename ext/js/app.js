@@ -8,8 +8,7 @@ var app_init = (function() {
     var _status = StateEnum.UNINSTALLED;
     var _videofx = {}
     var _pipeline_video = document.createElement("video");
-    var _stream_orign = null;
-    var _stream_id_map = {}
+    var _stream_video_orign = null;
     var _pipeline_renderer = null;
     var _sendMessage2ContentScript = function(data) {
         // https://gist.github.com/gordonbrander/2230317
@@ -40,9 +39,7 @@ var app_init = (function() {
         return _videofx[fx].main(video);
     }
     var _createNewStream = function(stream) {
-        _stream_orign = stream;
-        if (_stream_orign.getVideoTracks().length > 0) {
-            debug('stream origin', _stream_orign.getTracks())
+        if (stream.getVideoTracks().length > 0) {
             debug('_pipeline_video', _pipeline_video)
             return new Promise(function(resolve, reject) {
                 var handler = function() {
@@ -50,14 +47,15 @@ var app_init = (function() {
                     _pipeline_video.play();
                     _threeRender(_pipeline_video);
                     var stream_from_effect = _pipeline_renderer.domElement.captureStream(30);
-                    for (var audio_track of _stream_orign.getAudioTracks()) {
+                    for (var audio_track of stream.getAudioTracks()) {
                         stream_from_effect.addTrack(audio_track);
                     }
                     stream_from_effect.getTracks().forEach(function(track) {
                         track.addEventListener('ended', function(evt) {
-                            debug('ended', evt, _stream_orign.getTracks())
-                            if (evt.target.kind === 'video') {
-                                _stream_orign.getVideoTracks()[0].stop()
+                            debug('ended', evt)
+                            if (evt.target instanceof CanvasCaptureMediaStreamTrack) {
+                                // if canvas ended, ends the original video stream too
+                                _stream_video_orign.stop()
                             }
                         })
                     });
@@ -67,13 +65,14 @@ var app_init = (function() {
                 }
                 _pipeline_video.addEventListener('canplay', handler);
                 // TODO: maybe taking the 1st video track is not optimal
-                var stream_to_effect = new MediaStream([_stream_orign.getVideoTracks()[0]]);
+                _stream_video_orign = stream.getVideoTracks()[0]
+                var stream_to_effect = new MediaStream([_stream_video_orign]);
                 debug('stream to effect', stream_to_effect.getTracks());
                 _pipeline_video.src = window.URL.createObjectURL(stream_to_effect);
             })
         } else {
             return new Promise(function(resolve, reject) {
-                resolve(_stream_orign);
+                resolve(stream);
             })
         }
     }
