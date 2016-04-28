@@ -5,7 +5,7 @@
     "description": "This extension applies video effects on the camera in WebRTC applications",
     "version": "1.0",
     "browser_action": {
-        "default_icon": "res/icon.png",
+        "default_icon": "res/icon_on.png",
         "default_popup": "popup.html",
         "default_title": "Video effect!"
     },
