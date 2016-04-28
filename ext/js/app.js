@@ -9,6 +9,7 @@ var app_init = (function() {
     var _videofx = {}
     var _pipeline_video = document.createElement("video");
     var _stream_orign = null;
+    var _stream_id_map = {}
     var _pipeline_renderer = null;
     var _sendMessage2ContentScript = function(data) {
         // https://gist.github.com/gordonbrander/2230317
@@ -53,8 +54,11 @@ var app_init = (function() {
                         stream_from_effect.addTrack(audio_track);
                     }
                     stream_from_effect.getTracks().forEach(function(track) {
-                        track.addEventListener('ended', function(track) {
-                            debug('ended', this, track, _stream_orign.getTracks())
+                        track.addEventListener('ended', function(evt) {
+                            debug('ended', evt, _stream_orign.getTracks())
+                            if (evt.target.kind === 'video') {
+                                _stream_orign.getVideoTracks()[0].stop()
+                            }
                         })
                     });
                     debug('stream from effect', stream_from_effect.getTracks())
