@@ -15,7 +15,8 @@
     "content_scripts": [{
         "run_at": "document_start",
         "js": ["js/util.js", "js/util_inject.js", "js/app.js", "js/main.js"],
-        "matches": ["*://*/*"]
+        "matches": ["*://*/*"],
+        "all_frames": true
     }],
     "web_accessible_resources": ["lib/three.min.js"]
 }
