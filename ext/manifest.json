@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
-    "name": "ORTC/WebRTC video effect",
+    "name": "WebRTC video effect",
     "short_name": "webfx",
-    "description": "This extension apply video effects on the video from the camera",
+    "description": "This extension applies video effects on the camera in WebRTC applications",
     "version": "1.0",
     "browser_action": {
         "default_icon": "res/icon.png",
