@@ -8,6 +8,9 @@ It means that if the web page calls the getUserMedia() function, the extension w
 - load additional files
 - add video effect on top of the video stream coming from the camera.
 
+
+You can get a better idea of what it does by opening the developer console via the F12 key.
+
 The video effects are done on WebGL with [three.js](http://threejs.org/)
 
 ## Install
