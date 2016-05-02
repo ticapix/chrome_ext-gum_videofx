@@ -22,6 +22,7 @@ The video effects are done on WebGL with [three.js](http://threejs.org/)
 Once you installed the extension, you can try it out here
 
 - https://appear.in/ticapix
+- https://apprtc.appspot.com/r/ticapix
 - https://simpl.info/getusermedia/
 - any website using WebRTC
 
