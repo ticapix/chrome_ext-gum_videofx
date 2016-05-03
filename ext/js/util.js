@@ -1,13 +1,15 @@
+'use strict';
+
 function debug() {
-    var prefix = typeof application_name !== 'undefined' ? application_name : '-'
+    var prefix = typeof application_name !== 'undefined' ? application_name : '-';
     if (chrome.extension === undefined) {
-        prefix += '(web)'
+        prefix += '(web)';
     } else {
-        prefix = chrome.runtime.getManifest().short_name
+        prefix = chrome.runtime.getManifest().short_name;
         if (location.protocol === 'chrome-extension:') {
-            prefix += '(bg)'
+            prefix += '(bg)';
         } else {
-            prefix += '(cs)'
+            prefix += '(cs)';
         }
     }
     Array.prototype.unshift.call(arguments, prefix);

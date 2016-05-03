@@ -1,6 +1,7 @@
+'use strict';
 window[application_name].defineModule('fx_null', function() {
-    var self = {}
-        // three.js cube drawing
+    var self = {};
+    // three.js cube drawing
     self.main = function(video) {
         var scene = new THREE.Scene();
         var aspect_ratio = window.innerWidth / window.innerHeight;
@@ -26,8 +27,8 @@ window[application_name].defineModule('fx_null', function() {
             if (window[application_name].render(scene, camera)) {
                 requestAnimationFrame(render);
             }
-        }
+        };
         render();
-    }
+    };
     return self;
 }());

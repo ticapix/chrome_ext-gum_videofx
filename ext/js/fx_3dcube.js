@@ -1,7 +1,8 @@
+'use strict';
 window[application_name].defineModule('fx_3dcube', function() {
     // https://github.com/chrisdavidmills/threejs-video-cube
-    var self = {}
-        // three.js cube drawing
+    var self = {};
+    // three.js cube drawing
     self.main = function(video) {
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10);
@@ -31,8 +32,8 @@ window[application_name].defineModule('fx_3dcube', function() {
             if (window[application_name].render(scene, camera)) {
                 requestAnimationFrame(render);
             }
-        }
+        };
         render();
-    }
+    };
     return self;
 }());
