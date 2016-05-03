@@ -28,8 +28,9 @@ window[application_name].defineModule('fx_3dcube', function() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 texture.needsUpdate = true;
             }
-            window[application_name].pipeline_renderer.render(scene, camera);
-            requestAnimationFrame(render);
+            if (window[application_name].render(scene, camera)) {
+                requestAnimationFrame(render);
+            }
         }
         render();
     }
