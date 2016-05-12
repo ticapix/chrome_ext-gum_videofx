@@ -1,0 +1,91 @@
+/*
++--label------------------------------+
+| +--label:before-------------------+ |
+| | +-------------+                 | |
+| | | label:after |                 | |
+| | |             |                 | |
+| | +-------------+                 | |
+| +---------------------------------+ |
++-------------------------------------+
+*/
+
+:root {
+    --switch-on-color: #8ce196;
+    --switch-off-color: #f1f1f1;
+    --switch-border-color: #dddddd;
+    --switch-button-color: #fff;
+    --switch-text-color: #999;
+    --switch-size: 1em;
+    /*change the next value to have rounded rectangle*/
+    --switch-radius: calc(var(--switch-size) / 2);
+}
+
+span.switch {
+    display: inline-flex;
+}
+
+.cmn-toggle {
+    position: absolute;
+    margin-left: -9999px;
+    visibility: hidden;
+}
+
+.cmn-toggle + label {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+}
+
+input.cmn-toggle-round + label {
+    width: calc(2 * var(--switch-size));
+    height: var(--switch-size);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--switch-border-color);
+    border-radius: var(--switch-radius);
+}
+
+input.cmn-toggle-round + label:before, input.cmn-toggle-round + label:after {
+    border-width: 0px;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    content: "";
+}
+
+input.cmn-toggle-round + label:before {
+    right: 0px;
+    background-color: var(--switch-off-color);
+    border-radius: var(--switch-radius);
+    transition: background 0.4s;
+    /*label*/
+    line-height: var(--switch-size);
+    /*to vertically center text*/
+    text-transform: uppercase;
+    color: var(--switch-text-color);
+    white-space: pre;
+    text-align: right;
+    content: attr(data-off);
+}
+
+input.cmn-toggle-round + label:after {
+    width: calc(var(--switch-size));
+    background-color: var(--switch-button-color);
+    border-radius: var(--switch-radius);
+    transition: margin 0.4s;
+    /*box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);*/
+}
+
+input.cmn-toggle-round:checked + label:before {
+    background-color: var(--switch-on-color);
+    /*label*/
+    text-align: left;
+    content: attr(data-on);
+}
+
+input.cmn-toggle-round:checked + label:after {
+    margin-left: var(--switch-size);
+}
