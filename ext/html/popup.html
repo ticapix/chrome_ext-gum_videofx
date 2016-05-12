@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            WebRTC Video Effect
+        </title>
+        <link rel="stylesheet" type="text/css" href="../css/switch.css"/>
+        <link rel="stylesheet" type="text/css" href="../css/popup.css"/>
+        <script src="../js/util.js"></script>
+        <script src="../js/popup.js"></script>
+        <style type="text/css">
+         #fxenabled:checked + #options {
+            visibility: hidden;
+            border-width: 2px;
+            border-color: #0F0;
+            border-style: solid;
+        }
+        </style>
+    </head>
+    <body>
+        <p>
+            Activate the video effect on <span id="domain">(loading...)</span>
+            <span class="switch" style="float: right;">
+                <input id="fxenabled" class="cmn-toggle cmn-toggle-round" type="checkbox" checked="true"/>
+                <label for="fxenabled" data-on="" data-off="">
+                </label>
+            </span>
+        </p>
+        <div id="options">
+        <hr>
+        <p>
+            <ul id="videofx">
+            </ul>
+        </p>
+        </div>
+    </body>
+</html>
