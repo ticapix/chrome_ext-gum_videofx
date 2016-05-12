@@ -1,5 +1,5 @@
 'use strict';
-window[application_name].defineModule('fx_3dcube', function() {
+webfx_defineAppModule('fx_3dcube', function(app) {
     // https://github.com/chrisdavidmills/threejs-video-cube
     var self = {};
     // three.js cube drawing
@@ -29,11 +29,11 @@ window[application_name].defineModule('fx_3dcube', function() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 texture.needsUpdate = true;
             }
-            if (window[application_name].render(scene, camera)) {
+            if (app.render(scene, camera)) {
                 requestAnimationFrame(render);
             }
         };
         render();
     };
     return self;
-}());
+});
