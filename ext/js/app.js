@@ -1,11 +1,18 @@
 'use strict';
+// valid state transition
+// UNINSTALLED -> LAZY_INSTALLED
+// LAZY_INSTALLED -> DISABLED
+// LAZY_INSTALLED -> ENABLED
+// ENABLED -> RUNNING
+// RUNNING -> ENABLED
 var app_init = (function() {
     debug('creating app ' + application_name);
     var StateEnum = {
         UNINSTALLED: 0,
         LAZY_INSTALLED: 1,
-        INSTALLED: 2,
-        RUNNING: 3
+        ENABLED: 2,
+        RUNNING: 3,
+        DISABLED: 4
     };
     var _status = StateEnum.UNINSTALLED;
     var _videofx = {};
@@ -41,19 +48,18 @@ var app_init = (function() {
     };
     var _render = function(scene, camera) {
         _pipeline_renderer.render(scene, camera);
-        debug(_status === StateEnum.RUNNING);
         return _status === StateEnum.RUNNING;
     };
     var _createNewStream = function(stream) {
-        if (stream.getVideoTracks().length > 0) {
+        var prom = new Promise(function(resolve, reject) {
+            resolve(stream);
+        });
+        if (_status === StateEnum.ENABLED && stream.getVideoTracks().length > 0) {
             debug('_pipeline_video', _pipeline_video);
-            return new Promise(function(resolve, reject) {
+            prom = new Promise(function(resolve, reject) {
                 var handler = function() {
                     debug('video canplay');
                     _pipeline_video.play();
-                    if (_status !== StateEnum.INSTALLED) {
-                        reject('webfx is not in INSTALLED state');
-                    }
                     _status = StateEnum.RUNNING;
                     _threeRender(_pipeline_video);
                     var stream_from_effect = _pipeline_renderer.domElement.captureStream(30);
@@ -63,7 +69,7 @@ var app_init = (function() {
                     stream_from_effect.getVideoTracks()[0].addEventListener('ended', function(evt) {
                         if (evt.target instanceof CanvasCaptureMediaStreamTrack) {
                             debug('stopping video capture');
-                            _status = StateEnum.INSTALLED;
+                            _status = StateEnum.ENABLED;
                             // if canvas ended, ends the original video stream too
                             stream_video_orign.stop();
                         }
@@ -82,11 +88,8 @@ var app_init = (function() {
                 debug('stream to effect', stream_to_effect.getTracks());
                 _pipeline_video.src = window.URL.createObjectURL(stream_to_effect);
             });
-        } else {
-            return new Promise(function(resolve, reject) {
-                resolve(stream);
-            });
         }
+        return prom;
     };
     var _installGumLazyHook = function() {
         window.MediaStream = window.webkitMediaStream;
@@ -100,12 +103,16 @@ var app_init = (function() {
                             video_effect_init: true
                         }).then(function(data) {
                             if (data.done === true) {
-                                _status = StateEnum.INSTALLED;
+                                _status = StateEnum.ENABLED;
+                                resolve();
+                            } else {
+                                _status = StateEnum.DISABLED;
                                 resolve();
                             }
                         });
                         break;
-                    case StateEnum.INSTALLED:
+                    case StateEnum.ENABLED:
+                    case StateEnum.DISABLED: // it's valid to continue if we are disabled
                         resolve();
                         break;
                     default:
@@ -127,20 +134,15 @@ var app_init = (function() {
         _pipeline_renderer.domElement.setAttribute('style', 'width: 1px;height: 1px;');
         (document.body || document.getElementsByTagName('head')[0] || document.documentElement).appendChild(_pipeline_renderer.domElement);
     };
-    var _defineModule = function(name, module) {
-        debug('loading videofx', name);
-        _videofx[name] = module;
-    };
     var self = {
         installGumLazyHook: _installGumLazyHook,
         installDomElt: _installDomElt,
-        defineModule: _defineModule,
         render: _render
     };
-    // Object.defineProperty(self, "pipeline_renderer", {
-    //     get: function() {
-    //         return _pipeline_renderer;
-    //     }
-    // })
+    Object.defineProperty(self, "videofx", {
+        get: function() {
+            return _videofx;
+        }
+    })
     return self;
 });
