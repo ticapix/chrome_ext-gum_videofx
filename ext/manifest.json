@@ -2,15 +2,15 @@
     "manifest_version": 2,
     "name": "WebRTC video effect",
     "short_name": "webfx",
-    "description": "This extension applies video effects on the camera in WebRTC applications",
     "version": "1.0",
+    "description": "This extension applies video effects on the camera in WebRTC applications",
     "browser_action": {
-        "default_icon": "res/icon_on.png",
-        "default_popup": "popup.html",
+        "default_icon": "res/icon_off.png",
+        "default_popup": "html/popup.html",
         "default_title": "Video effect!"
     },
     "background": {
-        "scripts": ["js/util.js", "js/background.js"]
+        "scripts": ["js/util.js", "js/util_inject.js", "js/background.js"]
     },
     "content_scripts": [{
         "run_at": "document_start",
@@ -18,5 +18,6 @@
         "matches": ["*://*/*"],
         "all_frames": true
     }],
-    "web_accessible_resources": ["lib/three.min.js"]
+    "web_accessible_resources": ["lib/three.min.js"],
+    "permissions": ["tabs", "storage"]
 }
