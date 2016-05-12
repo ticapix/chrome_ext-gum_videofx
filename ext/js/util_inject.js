@@ -30,7 +30,7 @@ function inject_code(code) {
 function inject_file(filename) {
     return new Promise(function(resolve, reject) {
         chrome.runtime.sendMessage({
-            get_script: filename
+            get_file: filename
         }, function(response) {
             debug('injecting', filename, 'code');
             return inject_code(response).then(function() {
