@@ -28,10 +28,10 @@ Once you installed the extension, you can try it out here
 
 ## TODO
 
-- [ ] use grunt instead of Makefile (seems like more JS/npm friendly)
+- [ ] use grunt instead of Makefile (seems more JS/npm friendly)
 - [ ] run jshint before packing the extension https://github.com/gruntjs/grunt-contrib-jshint
 - [ ] minify code before packing the extension https://github.com/gruntjs/grunt-contrib-uglify
 - [ ] add some test with karma or something
-- [ ] add more effect
-- [ ] add popup page to configure effect
-- [ ] add popup page to enable/disable extension
+- [X] add more effect
+- [X] add popup page to configure effect
+- [X] add popup page to enable/disable extension
