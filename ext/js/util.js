@@ -1,7 +1,6 @@
 'use strict';
-
-function debug() {
-    function _prefix() {
+var log = (function() {
+    var _prefix = function() {
         var prefix = typeof application_name !== 'undefined' ? application_name : '-';
         if (chrome.extension === undefined) {
             prefix += '(web)';
@@ -15,19 +14,16 @@ function debug() {
         }
         return prefix;
     }
-    Array.prototype.unshift.call(arguments, _prefix());
-    console.log.apply(console, arguments);
-}
-
-function error() {
-    Array.prototype.unshift.call(arguments, 'EE ');
-    debug(arguments);
-}
-
-function webfx_defineModule(name, module) {
-    if (this.videofx === undefined) {
-        debug('defining empty container for videofx on', this);
-        this.videofx = {};
+    var debug = function() {
+        Array.prototype.unshift.call(arguments, _prefix());
+        console.log.apply(console, arguments);
     }
-    this.videofx[name] = module(this);
-}
+    var error = function() {
+        Array.prototype.unshift.call(arguments, _prefix());
+        console.error.apply(console, arguments);
+    }
+    return {
+        debug: debug,
+        error: error
+    }
+})();
