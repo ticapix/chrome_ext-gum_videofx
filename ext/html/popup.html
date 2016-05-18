@@ -1,37 +1,117 @@
-<!doctype html>
+<!DOCTYPE doctype html>
 <html>
     <head>
         <title>
             WebRTC Video Effect
         </title>
-        <link rel="stylesheet" type="text/css" href="../css/switch.css"/>
-        <link rel="stylesheet" type="text/css" href="../css/popup.css"/>
-        <script src="../js/util.js"></script>
-        <script src="../js/popup.js"></script>
+        <link href="../css/switch.css" rel="stylesheet" type="text/css"/>
+        <link href="../css/popup.css" rel="stylesheet" type="text/css"/>
+        <script src="../js/util.js">
+        </script>
+        <script src="../js/background.js">
+        </script>
+        <script src="../js/popup.js">
+        </script>
+        <script src="../shared/message_proxies.js">
+        </script>
         <style type="text/css">
-         #fxenabled:checked + #options {
-            visibility: hidden;
-            border-width: 2px;
-            border-color: #0F0;
-            border-style: solid;
-        }
+            #reload_text {
+  display: none;
+  border-color: #900;
+  border-width: 2px;
+  border-style: solid;
+  padding: 0.5em 0.5em 0.5em 0.5em;
+}
+
+.radio-toolbar {
+            padding-left: 0;
+}
+.radio-toolbar input[type="radio"] {
+    display:none; 
+}
+
+.radio-toolbar label {
+    display:inline-block;
+    background-color:#f1f1f1;
+    /*padding:4px 11px;*/
+    /*font-family:Arial;*/
+    /*font-size:16px;*/
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.radio-toolbar input[type="radio"]:checked + label { 
+    background-color:#8ce196;
+}
+
+#videofx_lst {
+      width: 100%;
+  display: table;
+    /*list-style-type: none;*/
+    /*padding: 0 0 0 0;*/
+}
+
+#videofx_lst li {
+  display: table-row;
+}
+
+#videofx_lst label {
+    width: 100%;
+        line-height: 2em;
+    /*to vertically center text*/
+
+}
+
+#videofx_lst label img {
+    width: 2em;
+    height: 2em;
+}
+
+#videofx_lst input[type="radio"] ~ div {
+    display: none;
+}
+#videofx_lst input[type="radio"]:checked ~ div {
+    display: block;
+    background-color:#8ce196;
+    padding: 0em 1em 1em 1em;
+}
         </style>
     </head>
     <body>
+        <p id="reload_text">
+            <span>
+                If you changed settings, reload the page to take preferences into action.
+            </span>
+            <button id="reload_btn" type="button">
+                Reload page
+            </button>
+        </p>
         <p>
-            Activate the video effect on <span id="domain">(loading...)</span>
+            Activate the video effect on
+            <span id="domain_text">
+                (loading...)
+            </span>
             <span class="switch" style="float: right;">
-                <input id="fxenabled" class="cmn-toggle cmn-toggle-round" type="checkbox" checked="true"/>
-                <label for="fxenabled" data-on="" data-off="">
+                <input checked="true" class="cmn-toggle cmn-toggle-round" id="fxenabled_check" type="checkbox"/>
+                <label data-off="" data-on="" for="fxenabled_check">
                 </label>
             </span>
         </p>
-        <div id="options">
-        <hr>
-        <p>
-            <ul id="videofx">
-            </ul>
-        </p>
+        <div id="options_ctn">
+            <hr>
+                <p>
+                    Debug
+                    <span class="switch" style="float: right;">
+                        <input checked="true" class="cmn-toggle cmn-toggle-round" id="debug_check" type="checkbox"/>
+                        <label data-off="" data-on="" for="debug_check">
+                        </label>
+                    </span>
+                </p>
+                <p>
+                    <ul class="radio-toolbar" id="videofx_lst">
+                    </ul>
+                </p>
+            </hr>
         </div>
     </body>
 </html>
