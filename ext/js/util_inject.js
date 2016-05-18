@@ -8,11 +8,9 @@ function inject_fct(fct, auto_run) {
         elt.appendChild(document.createTextNode("(" + fct.name + ")()"));
     }
     var target = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
-    debug('injecting function', fct.name, 'in', target.nodeName);
+    log.debug('injecting function', fct.name, 'in', target.nodeName);
     target.appendChild(elt);
-    return new Promise(function(resolve, reject) {
-        resolve();
-    });
+    return Promise.resolve();
 }
 
 function inject_code(code) {
@@ -20,11 +18,9 @@ function inject_code(code) {
     elt.setAttribute("type", "text/javascript");
     elt.appendChild(document.createTextNode(code));
     var target = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
-    debug('injecting code', (code.substring(0, 40) + (code.length > 40 ? '...' : '')), 'in', target.nodeName);
+    log.debug('injecting code', (code.substring(0, 40) + (code.length > 40 ? '...' : '')), 'in', target.nodeName);
     target.appendChild(elt);
-    return new Promise(function(resolve, reject) {
-        resolve();
-    });
+    return Promise.resolve();
 }
 
 function inject_file(filename) {
@@ -32,7 +28,7 @@ function inject_file(filename) {
         chrome.runtime.sendMessage({
             get_file: filename
         }, function(response) {
-            debug('injecting', filename, 'code');
+            log.debug('injecting', filename, 'code');
             return inject_code(response).then(function() {
                 resolve();
             });
@@ -49,7 +45,7 @@ function inject_script(url) {
             resolve();
         };
         var target = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
-        debug('injecting url', url, 'in', target.nodeName);
+        log.debug('injecting url', url, 'in', target.nodeName);
         target.appendChild(elt);
     });
 }
