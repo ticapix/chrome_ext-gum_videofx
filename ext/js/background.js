@@ -1,4 +1,12 @@
-var videofx_files = ["js/fx_3dcube.js", "js/fx_null.js"]
+var videofx_files = ["fx_3dcube.js", "fx_null.js", 'fx_shader01.js']
+
+function updateTabIcon(tab, enabled) {
+    var path = enabled ? "../res/icon_on.png" : "../res/icon_off.png"
+    chrome.pageAction.setIcon({
+        tabId: tab.id,
+        path: path
+    });
+}
 
 function extractDomain(url) {
     var domain;
@@ -10,20 +18,50 @@ function extractDomain(url) {
     }
     //find & remove port number
     domain = domain.split(':')[0];
+    log.debug('domain', domain)
     return domain;
 }
-// function updateIcon(tab) {
-//     var path = 'res/icon32g.png'
-//     if (is_enabled) {
-//         path = 'res/icon32.png'
-//     }
-//     chrome.browserAction.setIcon({
-//         path: path
-//     });
-//     if (tab !== undefined) {
-//         chrome.tabs.reload(tab.id)
-//     }
-// }
+
+function getDebugFlag() {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.get({
+            debug: false
+        }, function(items) {
+            resolve(items.debug);
+        });
+    });
+}
+
+function setDebugFlag(flag) {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.set({
+            debug: flag ? true : false // quick sanitisation
+        }, function() {
+            resolve();
+        });
+    });
+}
+
+function getSelectedPluginIndex() {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.get({
+            default_fx_index: 0
+        }, function(items) {
+            resolve(items.default_fx_index);
+        });
+    });
+}
+
+function setSelectedPluginIndex(index) {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.set({
+            default_fx_index: parseInt(index)
+        }, function() {
+            resolve();
+        });
+    });
+}
+
 function getCurrentActiveTab() {
     return new Promise(function(resolve, reject) {
         chrome.tabs.query({
@@ -32,7 +70,7 @@ function getCurrentActiveTab() {
             lastFocusedWindow: true // In the current window
         }, function(tabs) {
             if (tabs.length === 0) {
-                error('tabs', tabs)
+                log.error('tabs', tabs)
                 reject("expecting at least one active tab")
             }
             resolve(tabs[0])
@@ -43,10 +81,9 @@ function getCurrentActiveTab() {
 function isExtEnabledForTab(tab) {
     return new Promise(function(resolve, reject) {
         if (tab.url === undefined) {
-            reject('tab.url is not defined')
+            reject(new Error('tab.url is not defined'));
         }
-        var domain = extractDomain(tab.url)
-        debug('domain', domain)
+        let domain = extractDomain(tab.url);
         chrome.storage.local.get({
             domains: []
         }, function(items) {
@@ -58,11 +95,10 @@ function isExtEnabledForTab(tab) {
 function setExtEnabledForTab(tab, enabled) {
     return new Promise(function(resolve, reject) {
         if (tab.url === undefined) {
-            reject('tab.url is not defined')
+            reject(new Error('tab.url is not defined'))
         }
-        var domain = extractDomain(tab.url)
-        debug('domain', domain)
-            // 1. get current listed domains
+        var domain = extractDomain(tab.url);
+        // 1. get current listed domains
         chrome.storage.local.get({
             domains: []
         }, function(items) {
@@ -83,17 +119,9 @@ function setExtEnabledForTab(tab, enabled) {
     });
 }
 
-function updateTabIcon(tab) {
-    isExtEnabledForTab(tab).then(function(enabled) {
-        var path = enabled ? "res/icon_on.png" : "res/icon_off.png"
-        chrome.browserAction.setIcon({
-            path: path
-        });
-    });
-}
-
 function loadFileAsString(url) {
-    debug('load url', url)
+    url = '/effects/' + url
+    log.debug('load url', url)
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
@@ -105,71 +133,54 @@ function loadFileAsString(url) {
         xhr.send(null);
     })
 }
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    debug('message', message)
-    if (message.get_file !== undefined) {
-        loadFileAsString(message.get_file).then(function(code) {
-            sendResponse(code);
-        })
-    } else if (message.get_videofx_files !== undefined) {
-        sendResponse(videofx_files)
-    } else if (message.is_enabled_for_current_tab !== undefined) {
-        getCurrentActiveTab().then(function(tab) {
-            isExtEnabledForTab(tab).then(function(enabled) {
-                sendResponse({
-                    enabled: enabled,
-                    domain: extractDomain(tab.url)
+var background_handler = (function() {
+    return {
+        setPageActionIconActive: function() {
+            return getCurrentActiveTab().then(function(tab) {
+                // set icon active
+                chrome.pageAction.show(tab.id);
+                // and update the user preference settings
+                isExtEnabledForTab(tab).then(function(enabled) {
+                    updateTabIcon(tab, enabled);
                 })
             })
-        })
-    } else if (message.enable_for_current_tab !== undefined) {
-        getCurrentActiveTab().then(function(tab) {
-            setExtEnabledForTab(tab, message.enable_for_current_tab).then(function() {
-                updateTabIcon(tab)
+        },
+        isExtensionEnableForCurrentTab: function() {
+            return getCurrentActiveTab().then(function(tab) {
+                return isExtEnabledForTab(tab)
             })
-        })
-    } else if (message.get_videofx_details !== undefined) {
-        var details = {
-            videofx: []
-        }
-        for (var fx_name in window.videofx) {
-            details.videofx.push(fx_name)
-            details[fx_name] = fx_name;
-        }
-        debug('sending details', details)
-        sendResponse(details)
-    } else {
-        debug('this is not a known message', message);
+        },
+        getAllEffectsAsStringArray: function() {
+            return new Promise(function(resolve, reject) {
+                var effects = []
+                var promises = []
+                videofx_files.forEach(function(filename) {
+                    promises.push(loadFileAsString(filename).then(function(code) {
+                        effects.push(code);
+                    }));
+                })
+                Promise.all(promises).then(function() {
+                    resolve(effects);
+                });
+            })
+        },
+        getDebugFlag: getDebugFlag,
+        getSelectedPluginIndex: getSelectedPluginIndex,
+        loadFileAsString: loadFileAsString
     }
+})();
+chrome.runtime.onMessage.addListener(function(rpc, sender, sendResponse) {
+    log.debug('RPC calling on background', rpc.fct_name, 'with args', rpc.args);
+    background_handler[rpc.fct_name].apply(null, rpc.args).then(function(response) {
+        log.debug('RPC background returning', response);
+        sendResponse(response)
+    });
     return true;
 });
-chrome.tabs.onActivated.addListener(function(activeInfo) {
-    getCurrentActiveTab().then(function(tab) {
-        updateTabIcon(tab)
-    });
-});
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.url !== undefined && tab.active === true) {
-        updateTabIcon(tab)
-    }
-});
-getCurrentActiveTab().then(function(tab) {
-    updateTabIcon(tab)
-});
-// debug
+// debug storage content
 chrome.storage.local.get(function(items) {
-    debug('storage.local', items)
+    log.debug('storage.local', items)
 });
 chrome.storage.sync.get(function(items) {
-    debug('storage.sync', items)
-});
-// redefine webfx_defineModule
-webfx_defineAppModule = webfx_defineModule.bind(window);
-// load plugin to get their info
-var fx_promises = [];
-for (var fx of videofx_files) {
-    fx_promises.push(inject_script(fx));
-}
-Promise.all(fx_promises).then(function() {
-    debug('done loading plugins data in', window.videofx)
+    log.debug('storage.sync', items)
 });
